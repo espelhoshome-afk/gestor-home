@@ -89,21 +89,21 @@ const Home = () => {
     <Layout>
       <div className="max-w-4xl mx-auto">
         <Card className="shadow-medium border-border/50">
-          <CardHeader className="border-b border-border/50 bg-gradient-to-r from-card to-secondary/20">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl gradient-accent shadow-soft">
-                <Bot className="w-5 h-5 text-accent-foreground" />
+          <CardHeader className="border-b border-border/50 bg-gradient-to-r from-card to-secondary/20 p-3 md:p-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-xl gradient-accent shadow-soft">
+                <Bot className="w-4 h-4 md:w-5 md:h-5 text-accent-foreground" />
               </div>
               <div>
-                <CardTitle>Assistente IA de Produção</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
+                <CardTitle className="text-base md:text-lg">Assistente IA de Produção</CardTitle>
+                <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1">
                   Faça perguntas sobre seus pedidos e processos
                 </p>
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <ScrollArea ref={scrollRef} className="h-[500px] p-6">
+            <ScrollArea ref={scrollRef} className="h-[calc(100dvh-280px)] md:h-[500px] p-3 md:p-6">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                   <Bot className="w-16 h-16 mb-4 opacity-20" />
@@ -117,24 +117,24 @@ const Home = () => {
                   {messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex gap-3 ${
+                      className={`flex gap-2 md:gap-3 ${
                         message.role === "user" ? "justify-end" : "justify-start"
                       }`}
                     >
                       {message.role === "assistant" && (
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent/10 text-accent flex-shrink-0">
-                          <Bot className="w-4 h-4" />
+                        <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg bg-accent/10 text-accent flex-shrink-0">
+                          <Bot className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         </div>
                       )}
                       <div
-                        className={`max-w-[80%] rounded-2xl px-4 py-3 transition-smooth ${
+                        className={`max-w-[85%] md:max-w-[80%] rounded-2xl px-3 py-2 md:px-4 md:py-3 transition-smooth ${
                           message.role === "user"
                             ? "gradient-primary text-primary-foreground shadow-soft"
                             : "bg-secondary text-secondary-foreground shadow-soft"
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        <p className="text-xs opacity-70 mt-1">
+                        <p className="text-xs md:text-sm whitespace-pre-wrap">{message.content}</p>
+                        <p className="text-[10px] md:text-xs opacity-70 mt-1">
                           {message.timestamp.toLocaleTimeString("pt-BR", {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -142,18 +142,18 @@ const Home = () => {
                         </p>
                       </div>
                       {message.role === "user" && (
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary flex-shrink-0">
-                          <User className="w-4 h-4" />
+                        <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg bg-primary/10 text-primary flex-shrink-0">
+                          <User className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         </div>
                       )}
                     </div>
                   ))}
                   {isLoading && (
-                    <div className="flex gap-3 justify-start">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent/10 text-accent flex-shrink-0">
-                        <Bot className="w-4 h-4" />
+                    <div className="flex gap-2 md:gap-3 justify-start">
+                      <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg bg-accent/10 text-accent flex-shrink-0">
+                        <Bot className="w-3.5 h-3.5 md:w-4 md:h-4" />
                       </div>
-                      <div className="bg-secondary text-secondary-foreground rounded-2xl px-4 py-3 shadow-soft">
+                      <div className="bg-secondary text-secondary-foreground rounded-2xl px-3 py-2 md:px-4 md:py-3 shadow-soft">
                         <Loader2 className="w-4 h-4 animate-spin" />
                       </div>
                     </div>
@@ -162,7 +162,7 @@ const Home = () => {
               )}
             </ScrollArea>
 
-            <div className="border-t border-border/50 p-4 bg-gradient-to-r from-card to-secondary/10">
+            <div className="border-t border-border/50 p-3 md:p-4 bg-gradient-to-r from-card to-secondary/10">
               <div className="flex gap-2">
                 <Input
                   value={input}
@@ -170,12 +170,12 @@ const Home = () => {
                   onKeyPress={handleKeyPress}
                   placeholder="Digite sua mensagem..."
                   disabled={isLoading}
-                  className="flex-1 transition-smooth"
+                  className="flex-1 transition-smooth text-sm md:text-base"
                 />
                 <Button
                   onClick={handleSend}
                   disabled={isLoading || !input.trim()}
-                  className="gradient-accent hover:opacity-90 transition-smooth shadow-soft"
+                  className="gradient-accent hover:opacity-90 transition-smooth shadow-soft h-9 w-9 md:h-10 md:w-10 p-0"
                 >
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
