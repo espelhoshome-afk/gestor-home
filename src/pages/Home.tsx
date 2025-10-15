@@ -8,6 +8,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Send, Bot, User, Loader2 } from "lucide-react";
 import Layout from "@/components/Layout";
 
+// Generate a unique session ID for this chat session
+const generateSessionId = () => {
+  return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+};
+
 interface Message {
   id: string;
   role: "user" | "assistant";
@@ -19,6 +24,7 @@ const Home = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId] = useState(() => generateSessionId());
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -44,7 +50,10 @@ const Home = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-chat", {
-        body: { message: input },
+        body: { 
+          message: input,
+          sessionId: sessionId 
+        },
       });
 
       if (error) throw error;

@@ -12,13 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const { message } = await req.json();
+    const { message, sessionId } = await req.json();
 
     if (!message) {
       throw new Error("Message is required");
     }
 
-    console.log("Sending message to N8N webhook:", message);
+    console.log("Sending message to N8N webhook:", message, "Session ID:", sessionId);
 
     // Call the N8N webhook
     const webhookUrl = "https://n8n.lrv.api.br/webhook/1c804baf-5153-4b5f-a3ec-c85fece152f6";
@@ -30,6 +30,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         message: message,
+        sessionId: sessionId,
         timestamp: new Date().toISOString(),
       }),
     });
