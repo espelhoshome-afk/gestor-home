@@ -4,11 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Clock, Settings, Truck, CheckCircle2 } from "lucide-react";
+import { Package, Clock, Settings, Truck, CheckCircle2, FileText } from "lucide-react";
 import Layout from "@/components/Layout";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Pedido = Tables<"pedidos">;
+
+interface PedidoGroup {
+  numero_pedido: string;
+  pedidos: Pedido[];
+  primeira_data: string;
+}
 
 interface KanbanColumn {
   id: string;
@@ -24,6 +30,13 @@ const Kanban = () => {
   const { toast } = useToast();
 
   const columns: KanbanColumn[] = [
+    {
+      id: "novo_pedido",
+      title: "Novo Pedido",
+      icon: <FileText className="w-4 h-4" />,
+      colorClass: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      filter: (p) => !p.insumos && !p.em_producao && !p.despachado,
+    },
     {
       id: "insumos",
       title: "Insumos",
@@ -53,6 +66,24 @@ const Kanban = () => {
       filter: (p) => p.despachado === true,
     },
   ];
+
+  const groupPedidosByNumero = (pedidos: Pedido[]): PedidoGroup[] => {
+    const grouped = new Map<string, Pedido[]>();
+    
+    pedidos.forEach(pedido => {
+      const key = pedido.numero_pedido || `individual_${pedido.id}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, []);
+      }
+      grouped.get(key)!.push(pedido);
+    });
+    
+    return Array.from(grouped.entries()).map(([numero, pedidos]) => ({
+      numero_pedido: numero,
+      pedidos,
+      primeira_data: pedidos[0].dia_pedido || pedidos[0].created_at,
+    }));
+  };
 
   const fetchPedidos = async () => {
     try {
@@ -126,9 +157,10 @@ const Kanban = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {columns.map((column) => {
           const columnPedidos = pedidos.filter(column.filter);
+          const groupedPedidos = groupPedidosByNumero(columnPedidos);
 
           return (
             <Card key={column.id} className="shadow-medium border-border/50">
@@ -141,53 +173,73 @@ const Kanban = () => {
                     {column.title}
                   </div>
                   <Badge variant="secondary" className="transition-smooth">
-                    {columnPedidos.length}
+                    {groupedPedidos.length}
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <ScrollArea className="h-[calc(100vh-280px)]">
                   <div className="p-4 space-y-3">
-                    {columnPedidos.length === 0 ? (
+                    {groupedPedidos.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground text-sm">
                         Nenhum pedido nesta etapa
                       </div>
                     ) : (
-                      columnPedidos.map((pedido) => (
+                      groupedPedidos.map((group) => (
                         <Card
-                          key={pedido.id}
+                          key={group.numero_pedido}
                           className="p-4 hover:shadow-medium transition-smooth cursor-pointer border-border/50"
                         >
-                          <div className="space-y-2">
-                            <div className="flex items-start justify-between">
-                              <h4 className="font-semibold text-sm">
-                                Pedido #{pedido.numero_pedido || pedido.id}
+                          <div className="space-y-3">
+                            {/* Header do Card */}
+                            <div className="flex items-start justify-between gap-2 pb-2 border-b border-border/50">
+                              <h4 className="font-bold text-base">
+                                Pedido #{group.numero_pedido.startsWith('individual_') ? group.pedidos[0].id : group.numero_pedido}
                               </h4>
-                              {pedido.dia_pedido && (
-                                <Badge variant="outline" className="text-xs">
-                                  <Clock className="w-3 h-3 mr-1" />
-                                  {formatDate(pedido.dia_pedido)}
-                                </Badge>
-                              )}
+                              <div className="flex flex-col items-end gap-1">
+                                {group.pedidos.length > 1 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {group.pedidos.length} itens
+                                  </Badge>
+                                )}
+                                {group.primeira_data && (
+                                  <Badge variant="outline" className="text-xs">
+                                    <Clock className="w-3 h-3 mr-1" />
+                                    {formatDate(group.primeira_data)}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
 
-                            {pedido.cor && (
-                              <div className="text-xs text-muted-foreground">
-                                <span className="font-medium">Cor:</span> {pedido.cor}
-                              </div>
-                            )}
-
-                            {pedido.tamanho && (
-                              <div className="text-xs text-muted-foreground">
-                                <span className="font-medium">Tamanho:</span> {pedido.tamanho}
-                              </div>
-                            )}
-
-                            {pedido.espelho && (
-                              <div className="text-xs text-muted-foreground">
-                                <span className="font-medium">Espelho:</span> {pedido.espelho}
-                              </div>
-                            )}
+                            {/* Lista de Itens do Pedido */}
+                            <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                              {group.pedidos.map((pedido, index) => (
+                                <div 
+                                  key={pedido.id} 
+                                  className={`space-y-1 ${index > 0 ? 'pt-2 border-t border-border/30' : ''}`}
+                                >
+                                  {pedido.espelho && (
+                                    <div className="text-sm font-semibold text-foreground">
+                                      • {pedido.espelho}
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex flex-wrap gap-2 ml-3">
+                                    {pedido.tamanho && (
+                                      <span className="text-xs text-muted-foreground">
+                                        Tamanho: {pedido.tamanho}
+                                      </span>
+                                    )}
+                                    
+                                    {pedido.cor && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        Cor: {pedido.cor}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </Card>
                       ))
