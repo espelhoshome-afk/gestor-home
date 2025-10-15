@@ -205,7 +205,7 @@ const Kanban = () => {
                                 {group.primeira_data && (
                                   <Badge variant="outline" className="text-xs">
                                     <Clock className="w-3 h-3 mr-1" />
-                                    {formatDate(group.primeira_data)}
+                                    {typeof group.primeira_data === 'string' && group.primeira_data.includes('/') ? group.primeira_data : formatDate(group.primeira_data)}
                                   </Badge>
                                 )}
                               </div>
