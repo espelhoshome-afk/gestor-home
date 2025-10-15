@@ -87,7 +87,7 @@ const Home = () => {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full">
         <Card className="shadow-medium border-border/50">
           <CardHeader className="border-b border-border/50 bg-gradient-to-r from-card to-secondary/20 p-3 md:p-6">
             <div className="flex items-center gap-2 md:gap-3">

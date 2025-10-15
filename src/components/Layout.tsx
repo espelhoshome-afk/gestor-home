@@ -50,7 +50,7 @@ const Layout = ({ children }: LayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background pb-20 md:pb-0 overflow-x-hidden">
       {/* Header - Compacto em mobile */}
       <nav className="bg-card border-b border-border shadow-soft sticky top-0 z-50 backdrop-blur-sm bg-card/95">
         <div className="container mx-auto px-3 md:px-4">
@@ -111,7 +111,7 @@ const Layout = ({ children }: LayoutProps) => {
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto px-3 md:px-4 py-4 md:py-6">
+      <main className="container mx-auto px-3 md:px-4 py-4 md:py-6 max-w-full">
         {children}
       </main>
 

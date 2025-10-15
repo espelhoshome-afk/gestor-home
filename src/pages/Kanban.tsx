@@ -157,13 +157,13 @@ const Kanban = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 overflow-x-auto pb-2">
+      <div className="flex flex-col md:grid md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
         {columns.map((column) => {
           const columnPedidos = pedidos.filter(column.filter);
           const groupedPedidos = groupPedidosByNumero(columnPedidos);
 
           return (
-            <Card key={column.id} className="shadow-medium border-border/50 min-w-[280px] md:min-w-0">
+            <Card key={column.id} className="shadow-medium border-border/50 w-full">
               <CardHeader className="pb-2 md:pb-3 border-b border-border/50 p-3 md:p-4">
                 <CardTitle className="flex items-center justify-between text-sm md:text-base">
                   <div className="flex items-center gap-1.5 md:gap-2">
