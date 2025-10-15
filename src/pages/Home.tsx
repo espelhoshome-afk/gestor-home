@@ -127,13 +127,13 @@ const Home = () => {
                         </div>
                       )}
                       <div
-                        className={`max-w-[85%] md:max-w-[80%] rounded-2xl px-3 py-2 md:px-4 md:py-3 transition-smooth ${
+                        className={`max-w-[85%] md:max-w-[80%] rounded-2xl px-3 py-2 md:px-4 md:py-3 transition-smooth break-words ${
                           message.role === "user"
                             ? "gradient-primary text-primary-foreground shadow-soft"
                             : "bg-secondary text-secondary-foreground shadow-soft"
                         }`}
                       >
-                        <p className="text-xs md:text-sm whitespace-pre-wrap">{message.content}</p>
+                        <p className="text-xs md:text-sm whitespace-pre-wrap break-all">{message.content}</p>
                         <p className="text-[10px] md:text-xs opacity-70 mt-1">
                           {message.timestamp.toLocaleTimeString("pt-BR", {
                             hour: "2-digit",

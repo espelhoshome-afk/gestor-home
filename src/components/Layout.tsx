@@ -53,7 +53,7 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background pb-20 md:pb-0 overflow-x-hidden">
       {/* Header - Compacto em mobile */}
       <nav className="bg-card border-b border-border shadow-soft sticky top-0 z-50 backdrop-blur-sm bg-card/95">
-        <div className="container mx-auto px-3 md:px-4">
+        <div className="w-full px-3 md:px-4">
           <div className="flex items-center justify-between h-14 md:h-16">
             <div className="flex items-center gap-2 md:gap-3">
               <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-xl gradient-primary shadow-soft">
@@ -111,7 +111,7 @@ const Layout = ({ children }: LayoutProps) => {
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto px-3 md:px-4 py-4 md:py-6 max-w-full">
+      <main className="w-full px-3 md:px-4 py-4 md:py-6">
         {children}
       </main>
 
@@ -123,19 +123,19 @@ const Layout = ({ children }: LayoutProps) => {
               variant={location.pathname === "/" ? "default" : "ghost"}
               size="lg"
               onClick={() => navigate("/")}
-              className="h-14 flex-col gap-1 transition-smooth"
+              className="h-14 flex-col gap-1 transition-smooth min-w-0 flex-1"
             >
               <MessageSquare className="w-5 h-5" />
-              <span className="text-xs">Chat IA</span>
+              <span className="text-xs font-medium">Chat IA</span>
             </Button>
             <Button
               variant={location.pathname === "/kanban" ? "default" : "ghost"}
               size="lg"
               onClick={() => navigate("/kanban")}
-              className="h-14 flex-col gap-1 transition-smooth"
+              className="h-14 flex-col gap-1 transition-smooth min-w-0 flex-1"
             >
               <LayoutDashboard className="w-5 h-5" />
-              <span className="text-xs">Kanban</span>
+              <span className="text-xs font-medium">Kanban</span>
             </Button>
           </div>
         </nav>

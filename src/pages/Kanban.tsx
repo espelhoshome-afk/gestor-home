@@ -157,7 +157,7 @@ const Kanban = () => {
         </p>
       </div>
 
-      <div className="flex flex-col md:grid md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+      <div className="flex flex-col md:grid md:grid-cols-2 lg:grid-cols-5 gap-2 md:gap-4">
         {columns.map((column) => {
           const columnPedidos = pedidos.filter(column.filter);
           const groupedPedidos = groupPedidosByNumero(columnPedidos);
@@ -166,20 +166,20 @@ const Kanban = () => {
             <Card key={column.id} className="shadow-medium border-border/50 w-full">
               <CardHeader className="pb-2 md:pb-3 border-b border-border/50 p-3 md:p-4">
                 <CardTitle className="flex items-center justify-between text-sm md:text-base">
-                  <div className="flex items-center gap-1.5 md:gap-2">
-                    <div className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg ${column.colorClass}`}>
+                  <div className="flex items-center gap-1.5 md:gap-2 min-w-0 flex-1">
+                    <div className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg ${column.colorClass} shrink-0`}>
                       {column.icon}
                     </div>
-                    <span className="text-sm md:text-base">{column.title}</span>
+                    <span className="text-sm md:text-base truncate">{column.title}</span>
                   </div>
-                  <Badge variant="secondary" className="transition-smooth text-xs">
+                  <Badge variant="secondary" className="transition-smooth text-xs break-all shrink-0">
                     {groupedPedidos.length}
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <ScrollArea className="h-[calc(100dvh-320px)] md:h-[calc(100vh-280px)]">
-                  <div className="p-2 md:p-4 space-y-2 md:space-y-3">
+                  <div className="p-1.5 md:p-4 space-y-2 md:space-y-3">
                     {groupedPedidos.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground text-xs md:text-sm">
                         Nenhum pedido nesta etapa
@@ -193,17 +193,17 @@ const Kanban = () => {
                           <div className="space-y-2 md:space-y-3">
                             {/* Header do Card */}
                             <div className="flex items-start justify-between gap-2 pb-2 border-b border-border/50">
-                              <h4 className="font-bold text-sm md:text-base">
+                              <h4 className="font-bold text-sm md:text-base break-words truncate flex-1 min-w-0">
                                 Pedido #{group.numero_pedido.startsWith('individual_') ? group.pedidos[0].id : group.numero_pedido}
                               </h4>
-                              <div className="flex flex-col items-end gap-1">
+                              <div className="flex flex-col items-end gap-1 shrink-0">
                                 {group.pedidos.length > 1 && (
-                                  <Badge variant="secondary" className="text-[10px] md:text-xs">
+                                  <Badge variant="secondary" className="text-[10px] md:text-xs break-all">
                                     {group.pedidos.length} itens
                                   </Badge>
                                 )}
                                 {group.primeira_data && (
-                                  <Badge variant="outline" className="text-[10px] md:text-xs">
+                                  <Badge variant="outline" className="text-[10px] md:text-xs break-all">
                                     <Clock className="w-2.5 h-2.5 md:w-3 md:h-3 mr-1" />
                                     {typeof group.primeira_data === 'string' && group.primeira_data.includes('/') ? group.primeira_data : formatDate(group.primeira_data)}
                                   </Badge>
@@ -219,7 +219,7 @@ const Kanban = () => {
                                   className={`space-y-1 ${index > 0 ? 'pt-2 border-t border-border/30' : ''}`}
                                 >
                                   {pedido.espelho && (
-                                    <div className="text-xs md:text-sm font-semibold text-foreground">
+                                    <div className="text-xs md:text-sm font-semibold text-foreground truncate">
                                       • {pedido.espelho}
                                     </div>
                                   )}
@@ -232,7 +232,7 @@ const Kanban = () => {
                                     )}
                                     
                                     {pedido.cor && (
-                                      <Badge variant="secondary" className="text-[10px] md:text-xs">
+                                      <Badge variant="secondary" className="text-[10px] md:text-xs break-all">
                                         Cor: {pedido.cor}
                                       </Badge>
                                     )}
