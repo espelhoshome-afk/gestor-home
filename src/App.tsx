@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Kanban from "./pages/Kanban";
 import NotFound from "./pages/NotFound";
+import InstallPWA from "./components/InstallPWA";
 
 const queryClient = new QueryClient();
 
@@ -15,6 +16,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <InstallPWA />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
