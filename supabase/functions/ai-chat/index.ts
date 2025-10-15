@@ -39,12 +39,22 @@ serve(async (req) => {
       throw new Error("Failed to get response from AI webhook");
     }
 
-    const webhookData = await webhookResponse.json();
-    console.log("Received response from N8N:", webhookData);
+    // Try to parse the response
+    const responseText = await webhookResponse.text();
+    console.log("Received response from N8N (raw):", responseText);
 
-    // Extract the response from the webhook data
-    // Adjust this based on the actual response structure from your N8N webhook
-    const aiResponse = webhookData.response || webhookData.message || "Recebi sua mensagem!";
+    let aiResponse = "Recebi sua mensagem!";
+    
+    if (responseText) {
+      try {
+        const webhookData = JSON.parse(responseText);
+        console.log("Parsed N8N response:", webhookData);
+        aiResponse = webhookData.response || webhookData.message || webhookData.output || responseText;
+      } catch (parseError) {
+        console.log("Response is not JSON, using as text:", parseError);
+        aiResponse = responseText;
+      }
+    }
 
     return new Response(
       JSON.stringify({ response: aiResponse }),
