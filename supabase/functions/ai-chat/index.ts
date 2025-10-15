@@ -18,7 +18,10 @@ serve(async (req) => {
       throw new Error("Message is required");
     }
 
-    console.log("Sending message to N8N webhook:", message, "Session ID:", sessionId);
+    // Ensure we ALWAYS have a session id (fallback if client didn't send it)
+    const sid = sessionId || crypto.randomUUID();
+
+    console.log("Sending message to N8N webhook:", message, "Session ID:", sid);
 
     // Call the N8N webhook
     const webhookUrl = "https://n8n.lrv.api.br/webhook/1c804baf-5153-4b5f-a3ec-c85fece152f6";
@@ -30,7 +33,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         message: message,
-        sessionId: sessionId,
+        sessionId: sid,
         timestamp: new Date().toISOString(),
       }),
     });
