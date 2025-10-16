@@ -161,7 +161,7 @@ const Kanban = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4 lg:gap-6">
         {columns.map((column) => {
           const columnPedidos = pedidos.filter(column.filter);
           const groupedPedidos = groupPedidosByNumero(columnPedidos);
@@ -201,7 +201,7 @@ const Kanban = () => {
                               {/* Header do Card */}
                               <div className="flex items-start justify-between gap-2 pb-2 border-b border-border/50">
                                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <h4 className="font-bold text-sm md:text-base truncate">
+                                  <h4 className="font-bold text-sm md:text-base break-words">
                                     Pedido #{group.numero_pedido.startsWith('individual_') ? group.pedidos[0].id : group.numero_pedido}
                                   </h4>
                                   {group.pedidos[0].Tipo && (
