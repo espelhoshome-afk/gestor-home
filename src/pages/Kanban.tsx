@@ -56,18 +56,18 @@ const Kanban = () => {
       filter: (p) => p.em_producao && !p.envio_expedicao && !p.despachado,
     },
     {
-      id: "envio_expedicao",
-      title: "Expedição",
-      icon: <Truck className="w-4 h-4" />,
-      colorClass: "bg-accent/10 text-accent border-accent/20",
-      filter: (p) => p.envio_expedicao && !p.despachado,
-    },
-    {
       id: "despachado",
       title: "Despachado",
       icon: <CheckCircle2 className="w-4 h-4" />,
       colorClass: "bg-success/10 text-success border-success/20",
       filter: (p) => p.despachado === true,
+    },
+    {
+      id: "envio_expedicao",
+      title: "Expedição",
+      icon: <Truck className="w-4 h-4" />,
+      colorClass: "bg-accent/10 text-accent border-accent/20",
+      filter: (p) => p.envio_expedicao && !p.despachado,
     },
   ];
 
