@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const NotificationPrompt = () => {
   const [show, setShow] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const { permission, isSupported, requestPermission } = useNotifications();
+  const { permission, isSupported, requestPermission, sendTestNotification } = useNotifications();
 
   useEffect(() => {
     // Check if user is logged in
@@ -31,11 +31,11 @@ export const NotificationPrompt = () => {
     // Show prompt if:
     // 1. Notifications are supported
     // 2. User is logged in
-    // 3. Permission is default (not asked yet)
+    // 3. Permission is default (not asked yet) OR granted (to show test button)
     // 4. User hasn't dismissed the prompt in this session
     const dismissed = sessionStorage.getItem('notification-prompt-dismissed');
     
-    if (isSupported && isLoggedIn && permission === 'default' && !dismissed) {
+    if (isSupported && isLoggedIn && (permission === 'default' || permission === 'granted') && !dismissed) {
       // Show after a short delay
       const timer = setTimeout(() => setShow(true), 3000);
       return () => clearTimeout(timer);
@@ -65,27 +65,41 @@ export const NotificationPrompt = () => {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm mb-1">
-              Ativar Notificações
+              {permission === 'granted' ? 'Notificações Ativas' : 'Ativar Notificações'}
             </h3>
             <p className="text-xs text-muted-foreground mb-3">
-              Receba alertas sobre novos pedidos e atualizações importantes.
+              {permission === 'granted' 
+                ? 'Suas notificações estão funcionando. Teste abaixo!' 
+                : 'Receba alertas sobre novos pedidos e atualizações importantes.'}
             </p>
             <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={handleEnable}
-                className="flex-1"
-              >
-                Ativar
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleDismiss}
-                className="flex-1"
-              >
-                Agora não
-              </Button>
+              {permission === 'granted' ? (
+                <Button
+                  size="sm"
+                  onClick={sendTestNotification}
+                  className="flex-1"
+                >
+                  Enviar Teste
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    size="sm"
+                    onClick={handleEnable}
+                    className="flex-1"
+                  >
+                    Ativar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleDismiss}
+                    className="flex-1"
+                  >
+                    Agora não
+                  </Button>
+                </>
+              )}
             </div>
           </div>
           <Button

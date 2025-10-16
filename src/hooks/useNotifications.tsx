@@ -68,13 +68,20 @@ export const useNotifications = () => {
         return;
       }
 
-      const registration = await navigator.serviceWorker.ready;
-      console.log('Service Worker ready:', registration);
+      // Registra o SW do Firebase com escopo dedicado para não interferir no SW do PWA
+      console.log('Registering Firebase service worker...');
+      const firebaseSwRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+        scope: '/firebase-push/'
+      });
+
+      // Aguarda a ativação do SW registrado
+      await navigator.serviceWorker.ready;
+      console.log('Firebase SW registered:', firebaseSwRegistration);
       
-      // Get real FCM token from Firebase
+      // Agora obtém o token usando a registration do SW do Firebase
       const token = await getToken(messaging, { 
         vapidKey: VAPID_KEY,
-        serviceWorkerRegistration: registration
+        serviceWorkerRegistration: firebaseSwRegistration
       });
       
       if (!token) {
@@ -113,8 +120,8 @@ export const useNotifications = () => {
       } else {
         console.log('Notification token saved successfully');
       }
-    } catch (error) {
-      console.error('Error registering service worker:', error);
+    } catch (error: any) {
+      console.error('Error registering Firebase SW or getting token:', error?.code || error?.message || error);
     }
   };
 
