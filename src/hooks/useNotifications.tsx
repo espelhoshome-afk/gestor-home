@@ -143,6 +143,9 @@ export const useNotifications = () => {
       }
 
       const { error } = await supabase.functions.invoke('send-notification', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: {
           title: '🎉 Notificação de Teste',
           body: 'As notificações estão funcionando perfeitamente!',
