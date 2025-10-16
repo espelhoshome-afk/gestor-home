@@ -11,6 +11,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type Pedido = Tables<"pedidos"> & {
   transportadora?: string | null;
   "nota/rastreio"?: string | null;
+  Tipo?: string | null;
 };
 
 interface PedidoGroup {
@@ -199,9 +200,19 @@ const Kanban = () => {
                             <div className="space-y-2 md:space-y-3">
                               {/* Header do Card */}
                               <div className="flex items-start justify-between gap-2 pb-2 border-b border-border/50">
-                                <h4 className="font-bold text-sm md:text-base break-words truncate flex-1 min-w-0">
-                                  Pedido #{group.numero_pedido.startsWith('individual_') ? group.pedidos[0].id : group.numero_pedido}
-                                </h4>
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <h4 className="font-bold text-sm md:text-base truncate">
+                                    Pedido #{group.numero_pedido.startsWith('individual_') ? group.pedidos[0].id : group.numero_pedido}
+                                  </h4>
+                                  {group.pedidos[0].Tipo && (
+                                    <Badge 
+                                      variant={group.pedidos[0].Tipo.toLowerCase() === 'troca' ? 'destructive' : 'default'}
+                                      className="text-[10px] md:text-xs shrink-0"
+                                    >
+                                      {group.pedidos[0].Tipo}
+                                    </Badge>
+                                  )}
+                                </div>
                                 <div className="flex flex-col items-end gap-1 shrink-0">
                                   {group.pedidos.length > 1 && (
                                     <Badge variant="secondary" className="text-[10px] md:text-xs break-all">
