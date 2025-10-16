@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Kanban from "./pages/Kanban";
 import NotFound from "./pages/NotFound";
 import InstallPWA from "./components/InstallPWA";
+import { NotificationPrompt } from "./components/NotificationPrompt";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <InstallPWA />
+      <NotificationPrompt />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
