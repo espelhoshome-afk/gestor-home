@@ -3,6 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { messaging, onMessage } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Kanban from "./pages/Kanban";
@@ -12,7 +15,34 @@ import { NotificationPrompt } from "./components/NotificationPrompt";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = () => {
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!messaging) return;
+
+    const unsubscribe = onMessage(messaging, (payload) => {
+      console.log('Foreground message received:', payload);
+      
+      toast({
+        title: payload.notification?.title || 'Nova Notificação',
+        description: payload.notification?.body || '',
+      });
+      
+      // Show native notification even when app is open
+      if (Notification.permission === 'granted') {
+        new Notification(payload.notification?.title || 'Nova Notificação', {
+          body: payload.notification?.body || '',
+          icon: '/pwa-192x192.png',
+          data: payload.data
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [toast]);
+
+  return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -30,6 +60,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;

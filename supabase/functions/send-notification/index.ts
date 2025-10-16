@@ -51,7 +51,7 @@ serve(async (req) => {
     
     const { data: tokens, error: tokensError } = await supabase
       .from('notification_tokens')
-      .select('token')
+      .select('id, token')
       .eq('user_id', targetUserId);
 
     if (tokensError) {
@@ -68,31 +68,76 @@ serve(async (req) => {
 
     console.log(`Sending notification to ${tokens.length} device(s)`);
 
-    // Send notification to all user tokens
+    // Send notification to all user tokens with enhanced payload
     const results = await Promise.allSettled(
-      tokens.map(({ token }) =>
-        fetch('https://fcm.googleapis.com/fcm/send', {
+      tokens.map(async (tokenRecord) => {
+        const response = await fetch('https://fcm.googleapis.com/fcm/send', {
           method: 'POST',
           headers: {
             'Authorization': `key=${firebaseServerKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            to: token,
+            to: tokenRecord.token,
             notification: {
               title,
               body,
               icon: icon || '/pwa-192x192.png',
-              badge: badge || '/pwa-192x192.png',
+              badge: badge || '/favicon.ico',
             },
             data: data || {},
+            webpush: {
+              headers: {
+                TTL: '86400'
+              },
+              notification: {
+                title,
+                body,
+                icon: icon || '/pwa-192x192.png',
+                badge: badge || '/favicon.ico',
+              }
+            }
           }),
-        })
-      )
+        });
+        
+        const result = await response.json();
+        console.log(`FCM response for token ${tokenRecord.token.substring(0, 20)}...:`, result);
+        
+        return { tokenRecord, result, response };
+      })
     );
 
-    const successCount = results.filter(r => r.status === 'fulfilled').length;
-    const failedCount = results.filter(r => r.status === 'rejected').length;
+    // Clean up invalid tokens
+    const invalidTokenIds: string[] = [];
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        const { tokenRecord, result: fcmResult } = result.value;
+        
+        if (fcmResult.error === 'InvalidRegistration' || fcmResult.error === 'NotRegistered') {
+          console.log(`Invalid token detected: ${tokenRecord.token.substring(0, 20)}...`);
+          invalidTokenIds.push(tokenRecord.id);
+          failedCount++;
+        } else if (fcmResult.success === 1) {
+          successCount++;
+        } else {
+          failedCount++;
+        }
+      } else {
+        failedCount++;
+      }
+    }
+
+    // Remove invalid tokens from database
+    if (invalidTokenIds.length > 0) {
+      console.log(`Removing ${invalidTokenIds.length} invalid token(s) from database`);
+      await supabase
+        .from('notification_tokens')
+        .delete()
+        .in('id', invalidTokenIds);
+    }
 
     console.log(`Notifications sent: ${successCount} success, ${failedCount} failed`);
 

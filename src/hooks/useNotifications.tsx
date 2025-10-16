@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { messaging, getToken, VAPID_KEY } from '@/lib/firebase';
 
 export const useNotifications = () => {
   const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -59,11 +60,26 @@ export const useNotifications = () => {
 
   const registerServiceWorker = async () => {
     try {
+      if (!messaging) {
+        console.error('Firebase Messaging not supported');
+        return;
+      }
+
       const registration = await navigator.serviceWorker.ready;
+      console.log('Service Worker ready:', registration);
       
-      // Get FCM token (you'll need to configure Firebase)
-      // For now, we'll use a placeholder
-      const token = `token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // Get real FCM token from Firebase
+      const token = await getToken(messaging, { 
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: registration
+      });
+      
+      if (!token) {
+        console.error('No FCM token received');
+        return;
+      }
+
+      console.log('FCM Token obtained:', token.substring(0, 20) + '...');
       
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -74,7 +90,6 @@ export const useNotifications = () => {
       }
 
       // Save token to database
-      // Note: notification_tokens table will be created after running the SQL migration
       const { error } = await (supabase as any)
         .from('notification_tokens')
         .upsert({
