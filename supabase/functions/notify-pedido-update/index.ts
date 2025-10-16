@@ -1,4 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.0';
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,46 +12,54 @@ interface PedidoUpdate {
   type: 'UPDATE' | 'INSERT';
 }
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const FIREBASE_SERVER_KEY = Deno.env.get('FIREBASE_SERVER_KEY');
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Supabase env vars are not configured');
+    }
+    if (!FIREBASE_SERVER_KEY) {
+      throw new Error('FIREBASE_SERVER_KEY not configured');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const payload: PedidoUpdate = await req.json();
-    console.log('Received pedido update:', payload);
+    console.log('Received pedido update:', payload?.type, payload?.new_record?.id);
 
     const { old_record, new_record } = payload;
-    const numeroPedido = new_record.numero_pedido || new_record.id;
+    const numeroPedido = new_record?.numero_pedido || new_record?.id;
 
-    // Detectar qual campo mudou e criar mensagem apropriada
+    // Detect relevant change and craft message
     let title = '';
     let body = '';
     let hasRelevantChange = false;
 
-    if (old_record.insumos !== new_record.insumos && new_record.insumos) {
+    if (old_record?.insumos !== new_record?.insumos && new_record?.insumos) {
       title = `Pedido #${numeroPedido}`;
       body = 'Insumos foram pedidos! 📦';
       hasRelevantChange = true;
-    } else if (old_record.em_producao !== new_record.em_producao && new_record.em_producao) {
+    } else if (old_record?.em_producao !== new_record?.em_producao && new_record?.em_producao) {
       title = `Pedido #${numeroPedido}`;
       body = 'Entrou em produção! 🏭';
       hasRelevantChange = true;
-    } else if (old_record.envio_expedicao !== new_record.envio_expedicao && new_record.envio_expedicao) {
+    } else if (old_record?.envio_expedicao !== new_record?.envio_expedicao && new_record?.envio_expedicao) {
       title = `Pedido #${numeroPedido}`;
       body = 'Enviado para expedição! 📮';
       hasRelevantChange = true;
-    } else if (old_record.despachado !== new_record.despachado && new_record.despachado) {
+    } else if (old_record?.despachado !== new_record?.despachado && new_record?.despachado) {
       title = `Pedido #${numeroPedido}`;
       body = 'Foi despachado! 🚚';
       hasRelevantChange = true;
-    } else if (old_record['nota/rastreio'] !== new_record['nota/rastreio'] && new_record['nota/rastreio']) {
+    } else if (old_record?.['nota/rastreio'] !== new_record?.['nota/rastreio'] && new_record?.['nota/rastreio']) {
       title = `Pedido #${numeroPedido}`;
       body = `Código de rastreio disponível: ${new_record['nota/rastreio']}`;
       hasRelevantChange = true;
@@ -66,10 +75,10 @@ Deno.serve(async (req) => {
 
     console.log(`Sending notification: ${title} - ${body}`);
 
-    // Buscar todos os tokens ativos
+    // Fetch all tokens (broadcast). If in future we tie pedidos to user, we can filter here
     const { data: tokens, error: tokensError } = await supabase
       .from('notification_tokens')
-      .select('token, user_id');
+      .select('token');
 
     if (tokensError) {
       console.error('Error fetching tokens:', tokensError);
@@ -86,12 +95,7 @@ Deno.serve(async (req) => {
 
     console.log(`Found ${tokens.length} tokens to notify`);
 
-    // Enviar notificação via FCM para cada token
-    const FIREBASE_SERVER_KEY = Deno.env.get('FIREBASE_SERVER_KEY');
-    if (!FIREBASE_SERVER_KEY) {
-      throw new Error('FIREBASE_SERVER_KEY not configured');
-    }
-
+    // Send notification via FCM
     const results = await Promise.all(
       tokens.map(async ({ token }) => {
         try {
@@ -118,7 +122,7 @@ Deno.serve(async (req) => {
           });
 
           const result = await response.json();
-          
+
           if (!response.ok) {
             console.error(`FCM error for token ${token.substring(0, 20)}:`, result);
             return { success: false, token, error: result };
@@ -126,22 +130,22 @@ Deno.serve(async (req) => {
 
           console.log(`Notification sent successfully to token ${token.substring(0, 20)}`);
           return { success: true, token };
-        } catch (error) {
-          console.error(`Error sending to token ${token.substring(0, 20)}:`, error);
-          return { success: false, token, error };
+        } catch (err) {
+          console.error(`Error sending to token ${token.substring(0, 20)}:`, err);
+          return { success: false, token, error: err };
         }
       })
     );
 
-    const successCount = results.filter(r => r.success).length;
-    const failCount = results.filter(r => !r.success).length;
+    const successCount = results.filter((r) => r.success).length;
+    const failCount = results.filter((r) => !r.success).length;
 
     console.log(`Notifications sent: ${successCount} success, ${failCount} failed`);
 
-    // Remover tokens inválidos
+    // Remove tokens that are clearly invalid
     const invalidTokens = results
-      .filter(r => !r.success && r.error?.error === 'InvalidRegistration')
-      .map(r => r.token);
+      .filter((r) => !r.success && (r as any).error?.error === 'InvalidRegistration')
+      .map((r) => r.token);
 
     if (invalidTokens.length > 0) {
       console.log(`Removing ${invalidTokens.length} invalid tokens`);
@@ -161,10 +165,11 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
 
-  } catch (error) {
-    console.error('Error in notify-pedido-update:', error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Error in notify-pedido-update:', message);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
