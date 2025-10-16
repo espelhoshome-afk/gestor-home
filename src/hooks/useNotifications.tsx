@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { messaging, getToken, VAPID_KEY } from '@/lib/firebase';
+import { getToken } from 'firebase/messaging';
+import { getMessagingInstance, VAPID_KEY } from '@/lib/firebase';
 
 export const useNotifications = () => {
   const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -60,6 +61,8 @@ export const useNotifications = () => {
 
   const registerServiceWorker = async () => {
     try {
+      const messaging = getMessagingInstance();
+      
       if (!messaging) {
         console.error('Firebase Messaging not supported');
         return;

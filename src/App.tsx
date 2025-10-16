@@ -4,7 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
-import { messaging, onMessage } from "@/lib/firebase";
+import { onMessage } from "firebase/messaging";
+import { getMessagingInstance } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -19,6 +20,7 @@ const App = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    const messaging = getMessagingInstance();
     if (!messaging) return;
 
     const unsubscribe = onMessage(messaging, (payload) => {

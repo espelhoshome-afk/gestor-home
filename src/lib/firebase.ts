@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
+import { getMessaging } from 'firebase/messaging';
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyBHUdmLt1sF7vv4bmyc_-Mh8RWbyTUwXRg",
   authDomain: "gestor-home.firebaseapp.com",
   projectId: "gestor-home",
@@ -13,17 +13,19 @@ const firebaseConfig = {
 
 export const VAPID_KEY = 'BHFPHCc8rGnIre8XMsXYJH_4JMOpnPqqklX_QD2PP97HsgsMsLN4qXzE7v1U3MZm-lSvx6cFfXgXESTV54amfyc';
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-let messaging: Messaging | null = null;
-
-// Initialize messaging only if supported
-if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+// Get messaging instance (only if browser supports it)
+export function getMessagingInstance() {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    return null;
+  }
+  
   try {
-    messaging = getMessaging(app);
+    return getMessaging(app);
   } catch (error) {
     console.error('Error initializing Firebase Messaging:', error);
+    return null;
   }
 }
-
-export { messaging, getToken, onMessage };
