@@ -4,11 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Clock, Settings, Truck, CheckCircle2, FileText } from "lucide-react";
+import { Package, Clock, Settings, Truck, CheckCircle2, FileText, Building2, Hash } from "lucide-react";
 import Layout from "@/components/Layout";
 import type { Tables } from "@/integrations/supabase/types";
 
-type Pedido = Tables<"pedidos">;
+type Pedido = Tables<"pedidos"> & {
+  transportadora?: string | null;
+  "nota/rastreio"?: string | null;
+};
 
 interface PedidoGroup {
   numero_pedido: string;
@@ -184,65 +187,98 @@ const Kanban = () => {
                       <div className="text-center py-8 text-muted-foreground text-xs md:text-sm">
                         Nenhum pedido nesta etapa
                       </div>
-                    ) : (
-                      groupedPedidos.map((group) => (
-                        <Card
-                          key={group.numero_pedido}
-                          className="p-3 md:p-4 hover:shadow-medium transition-smooth cursor-pointer border-border/50"
-                        >
-                          <div className="space-y-2 md:space-y-3">
-                            {/* Header do Card */}
-                            <div className="flex items-start justify-between gap-2 pb-2 border-b border-border/50">
-                              <h4 className="font-bold text-sm md:text-base break-words truncate flex-1 min-w-0">
-                                Pedido #{group.numero_pedido.startsWith('individual_') ? group.pedidos[0].id : group.numero_pedido}
-                              </h4>
-                              <div className="flex flex-col items-end gap-1 shrink-0">
-                                {group.pedidos.length > 1 && (
-                                  <Badge variant="secondary" className="text-[10px] md:text-xs break-all">
-                                    {group.pedidos.length} itens
-                                  </Badge>
-                                )}
-                                {group.primeira_data && (
-                                  <Badge variant="outline" className="text-[10px] md:text-xs break-all">
-                                    <Clock className="w-2.5 h-2.5 md:w-3 md:h-3 mr-1" />
-                                    {typeof group.primeira_data === 'string' && group.primeira_data.includes('/') ? group.primeira_data : formatDate(group.primeira_data)}
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Lista de Itens do Pedido */}
-                            <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                              {group.pedidos.map((pedido, index) => (
-                                <div 
-                                  key={pedido.id} 
-                                  className={`space-y-1 ${index > 0 ? 'pt-2 border-t border-border/30' : ''}`}
-                                >
-                                  {pedido.espelho && (
-                                    <div className="text-xs md:text-sm font-semibold text-foreground truncate">
-                                      • {pedido.espelho}
-                                    </div>
+                     ) : (
+                      groupedPedidos.map((group) => {
+                        const isDispatchedColumn = column.id === 'despachado';
+                        
+                        return (
+                          <Card
+                            key={group.numero_pedido}
+                            className="p-3 md:p-4 hover:shadow-medium transition-smooth cursor-pointer border-border/50"
+                          >
+                            <div className="space-y-2 md:space-y-3">
+                              {/* Header do Card */}
+                              <div className="flex items-start justify-between gap-2 pb-2 border-b border-border/50">
+                                <h4 className="font-bold text-sm md:text-base break-words truncate flex-1 min-w-0">
+                                  Pedido #{group.numero_pedido.startsWith('individual_') ? group.pedidos[0].id : group.numero_pedido}
+                                </h4>
+                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                  {group.pedidos.length > 1 && (
+                                    <Badge variant="secondary" className="text-[10px] md:text-xs break-all">
+                                      {group.pedidos.length} itens
+                                    </Badge>
                                   )}
-                                  
-                                  <div className="flex flex-wrap gap-1.5 md:gap-2 ml-3">
-                                    {pedido.tamanho && (
-                                      <span className="text-[10px] md:text-xs text-muted-foreground">
-                                        Tamanho: {pedido.tamanho}
-                                      </span>
+                                  {group.primeira_data && (
+                                    <Badge variant="outline" className="text-[10px] md:text-xs break-all">
+                                      <Clock className="w-2.5 h-2.5 md:w-3 md:h-3 mr-1" />
+                                      {typeof group.primeira_data === 'string' && group.primeira_data.includes('/') ? group.primeira_data : formatDate(group.primeira_data)}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Lista de Itens do Pedido */}
+                              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                                {group.pedidos.map((pedido, index) => (
+                                  <div 
+                                    key={pedido.id} 
+                                    className={`space-y-1 ${index > 0 ? 'pt-2 border-t border-border/30' : ''}`}
+                                  >
+                                    {pedido.espelho && (
+                                      <div className="text-xs md:text-sm font-semibold text-foreground truncate">
+                                        • {pedido.espelho}
+                                      </div>
                                     )}
                                     
-                                    {pedido.cor && (
-                                      <Badge variant="secondary" className="text-[10px] md:text-xs break-all">
-                                        Cor: {pedido.cor}
-                                      </Badge>
+                                    <div className="flex flex-wrap gap-1.5 md:gap-2 ml-3">
+                                      {pedido.tamanho && (
+                                        <span className="text-[10px] md:text-xs text-muted-foreground">
+                                          Tamanho: {pedido.tamanho}
+                                        </span>
+                                      )}
+                                      
+                                      {pedido.cor && (
+                                        <Badge variant="secondary" className="text-[10px] md:text-xs break-all">
+                                          Cor: {pedido.cor}
+                                        </Badge>
+                                      )}
+                                    </div>
+
+                                    {/* Informações de Despacho - apenas para coluna Despachado */}
+                                    {isDispatchedColumn && (pedido.transportadora || pedido["nota/rastreio"]) && (
+                                      <div className="mt-2 pt-2 border-t border-border/30 space-y-1.5">
+                                        {pedido.transportadora && (
+                                          <div className="flex items-center gap-1.5">
+                                            <Building2 className="w-3 h-3 md:w-3.5 md:h-3.5 text-muted-foreground shrink-0" />
+                                            <span className="text-[10px] md:text-xs text-muted-foreground font-medium">
+                                              Transportadora:
+                                            </span>
+                                            <Badge variant="outline" className="text-[10px] md:text-xs">
+                                              {pedido.transportadora}
+                                            </Badge>
+                                          </div>
+                                        )}
+                                        
+                                        {pedido["nota/rastreio"] && (
+                                          <div className="flex items-center gap-1.5">
+                                            <Hash className="w-3 h-3 md:w-3.5 md:h-3.5 text-muted-foreground shrink-0" />
+                                            <span className="text-[10px] md:text-xs text-muted-foreground font-medium">
+                                              NF/Rastreio:
+                                            </span>
+                                            <Badge variant="secondary" className="text-[10px] md:text-xs break-all">
+                                              {pedido["nota/rastreio"]}
+                                            </Badge>
+                                          </div>
+                                        )}
+                                      </div>
                                     )}
                                   </div>
-                                </div>
-                              ))}
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        </Card>
-                      ))
+                          </Card>
+                        );
+                      })
                     )}
                   </div>
                 </ScrollArea>
