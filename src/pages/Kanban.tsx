@@ -28,6 +28,17 @@ interface KanbanColumn {
   filter: (pedido: Pedido) => boolean;
 }
 
+const parseDate = (value?: string | null): Date | null => {
+  if (!value) return null;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+    const [dd, mm, yyyy] = value.split("/").map(Number);
+    const d = new Date(yyyy, mm - 1, dd);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+};
+
 const Kanban = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,18 +93,27 @@ const Kanban = () => {
       grouped.get(key)!.push(pedido);
     });
 
-    return Array.from(grouped.entries()).map(([numero, pedidos]) => ({
-      numero_pedido: numero,
-      pedidos,
-      primeira_data: pedidos[0].dia_pedido || pedidos[0].created_at,
-    }));
+    return Array.from(grouped.entries()).map(([numero, pedidos]) => {
+      let earliest: Date | null = null;
+      pedidos.forEach((p) => {
+        const d = parseDate(p.dia_pedido) ?? parseDate(p.created_at);
+        if (d && (!earliest || d < earliest)) earliest = d;
+      });
+      const primeiraDataISO = (earliest ?? parseDate(pedidos[0].created_at) ?? new Date()).toISOString();
+
+      return {
+        numero_pedido: numero,
+        pedidos,
+        primeira_data: primeiraDataISO,
+      };
+    });
   };
 
   const sortGroupsByDate = (groups: PedidoGroup[]): PedidoGroup[] => {
     return groups.sort((a, b) => {
-      const dateA = new Date(a.primeira_data);
-      const dateB = new Date(b.primeira_data);
-      return dateA.getTime() - dateB.getTime();
+      const da = parseDate(a.primeira_data) ?? new Date(8640000000000000);
+      const db = parseDate(b.primeira_data) ?? new Date(8640000000000000);
+      return da.getTime() - db.getTime();
     });
   };
 
@@ -229,12 +249,10 @@ const Kanban = () => {
                                       {group.pedidos.length} itens
                                     </Badge>
                                   )}
-                                  {group.primeira_data && (
+                                   {group.primeira_data && (
                                     <Badge variant="outline" className="text-[10px] md:text-xs break-all">
                                       <Clock className="w-2.5 h-2.5 md:w-3 md:h-3 mr-1" />
-                                      {typeof group.primeira_data === "string" && group.primeira_data.includes("/")
-                                        ? group.primeira_data
-                                        : formatDate(group.primeira_data)}
+                                      {formatDate(group.primeira_data)}
                                     </Badge>
                                   )}
                                 </div>
