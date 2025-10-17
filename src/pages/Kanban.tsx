@@ -43,7 +43,7 @@ const Kanban = () => {
     },
     {
       id: "insumos",
-      title: "Insumos",
+      title: "Solicitação de insumos",
       icon: <Package className="w-4 h-4" />,
       colorClass: "bg-warning/10 text-warning border-warning/20",
       filter: (p) => p.insumos && !p.em_producao && !p.despachado,
