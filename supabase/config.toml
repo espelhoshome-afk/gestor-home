@@ -7,4 +7,4 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.notify-pedido-update]
-verify_jwt = false
+verify_jwt = true
