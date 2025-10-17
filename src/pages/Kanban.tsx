@@ -89,6 +89,14 @@ const Kanban = () => {
     }));
   };
 
+  const sortGroupsByDate = (groups: PedidoGroup[]): PedidoGroup[] => {
+    return groups.sort((a, b) => {
+      const dateA = new Date(a.primeira_data);
+      const dateB = new Date(b.primeira_data);
+      return dateA.getTime() - dateB.getTime();
+    });
+  };
+
   const fetchPedidos = async () => {
     try {
       const { data, error } = await supabase.from("pedidos").select("*").order("created_at", { ascending: false });
@@ -159,7 +167,7 @@ const Kanban = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4 lg:gap-6">
         {columns.map((column) => {
           const columnPedidos = pedidos.filter(column.filter);
-          const groupedPedidos = groupPedidosByNumero(columnPedidos);
+          const groupedPedidos = sortGroupsByDate(groupPedidosByNumero(columnPedidos));
 
           return (
             <Card key={column.id} className="shadow-medium border-border/50 w-full">
