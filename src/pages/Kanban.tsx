@@ -56,32 +56,32 @@ const Kanban = () => {
       filter: (p) => p.em_producao && !p.envio_expedicao && !p.despachado,
     },
     {
-      id: "despachado",
-      title: "Despachado",
-      icon: <CheckCircle2 className="w-4 h-4" />,
-      colorClass: "bg-success/10 text-success border-success/20",
-      filter: (p) => p.despachado === true,
-    },
-    {
       id: "envio_expedicao",
       title: "Expedição",
       icon: <Truck className="w-4 h-4" />,
       colorClass: "bg-accent/10 text-accent border-accent/20",
       filter: (p) => p.envio_expedicao && !p.despachado,
     },
+    {
+      id: "despachado",
+      title: "Despachado",
+      icon: <CheckCircle2 className="w-4 h-4" />,
+      colorClass: "bg-success/10 text-success border-success/20",
+      filter: (p) => p.despachado === true,
+    },
   ];
 
   const groupPedidosByNumero = (pedidos: Pedido[]): PedidoGroup[] => {
     const grouped = new Map<string, Pedido[]>();
-    
-    pedidos.forEach(pedido => {
+
+    pedidos.forEach((pedido) => {
       const key = pedido.numero_pedido || `individual_${pedido.id}`;
       if (!grouped.has(key)) {
         grouped.set(key, []);
       }
       grouped.get(key)!.push(pedido);
     });
-    
+
     return Array.from(grouped.entries()).map(([numero, pedidos]) => ({
       numero_pedido: numero,
       pedidos,
@@ -91,10 +91,7 @@ const Kanban = () => {
 
   const fetchPedidos = async () => {
     try {
-      const { data, error } = await supabase
-        .from("pedidos")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("pedidos").select("*").order("created_at", { ascending: false });
 
       if (error) throw error;
       setPedidos(data || []);
@@ -124,7 +121,7 @@ const Kanban = () => {
         },
         () => {
           fetchPedidos();
-        }
+        },
       )
       .subscribe();
 
@@ -156,9 +153,7 @@ const Kanban = () => {
     <Layout>
       <div className="mb-3 md:mb-6">
         <h1 className="text-xl md:text-3xl font-bold mb-1 md:mb-2">Kanban de Produção</h1>
-        <p className="text-xs md:text-sm text-muted-foreground">
-          Acompanhe o status de todos os pedidos em tempo real
-        </p>
+        <p className="text-xs md:text-sm text-muted-foreground">Acompanhe o status de todos os pedidos em tempo real</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4 lg:gap-6">
@@ -171,7 +166,9 @@ const Kanban = () => {
               <CardHeader className="pb-2 md:pb-3 border-b border-border/50 p-3 md:p-4">
                 <CardTitle className="flex items-center justify-between text-sm md:text-base">
                   <div className="flex items-center gap-1.5 md:gap-2 min-w-0 flex-1">
-                    <div className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg ${column.colorClass} shrink-0`}>
+                    <div
+                      className={`flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg ${column.colorClass} shrink-0`}
+                    >
                       {column.icon}
                     </div>
                     <span className="text-sm md:text-base truncate">{column.title}</span>
@@ -188,10 +185,10 @@ const Kanban = () => {
                       <div className="text-center py-8 text-muted-foreground text-xs md:text-sm">
                         Nenhum pedido nesta etapa
                       </div>
-                     ) : (
+                    ) : (
                       groupedPedidos.map((group) => {
-                        const isDispatchedColumn = column.id === 'despachado';
-                        
+                        const isDispatchedColumn = column.id === "despachado";
+
                         return (
                           <Card
                             key={group.numero_pedido}
@@ -202,11 +199,16 @@ const Kanban = () => {
                               <div className="flex items-start justify-between gap-2 pb-2 border-b border-border/50">
                                 <div className="flex items-center gap-2 flex-1 min-w-0">
                                   <h4 className="font-bold text-sm md:text-base break-words">
-                                    Pedido #{group.numero_pedido.startsWith('individual_') ? group.pedidos[0].id : group.numero_pedido}
+                                    Pedido #
+                                    {group.numero_pedido.startsWith("individual_")
+                                      ? group.pedidos[0].id
+                                      : group.numero_pedido}
                                   </h4>
                                   {group.pedidos[0].Tipo && (
-                                    <Badge 
-                                      variant={group.pedidos[0].Tipo.toLowerCase() === 'troca' ? 'destructive' : 'default'}
+                                    <Badge
+                                      variant={
+                                        group.pedidos[0].Tipo.toLowerCase() === "troca" ? "destructive" : "default"
+                                      }
                                       className="text-[10px] md:text-xs shrink-0"
                                     >
                                       {group.pedidos[0].Tipo}
@@ -222,7 +224,9 @@ const Kanban = () => {
                                   {group.primeira_data && (
                                     <Badge variant="outline" className="text-[10px] md:text-xs break-all">
                                       <Clock className="w-2.5 h-2.5 md:w-3 md:h-3 mr-1" />
-                                      {typeof group.primeira_data === 'string' && group.primeira_data.includes('/') ? group.primeira_data : formatDate(group.primeira_data)}
+                                      {typeof group.primeira_data === "string" && group.primeira_data.includes("/")
+                                        ? group.primeira_data
+                                        : formatDate(group.primeira_data)}
                                     </Badge>
                                   )}
                                 </div>
@@ -231,23 +235,23 @@ const Kanban = () => {
                               {/* Lista de Itens do Pedido */}
                               <div className="space-y-2 max-h-[200px] overflow-y-auto">
                                 {group.pedidos.map((pedido, index) => (
-                                  <div 
-                                    key={pedido.id} 
-                                    className={`space-y-1 ${index > 0 ? 'pt-2 border-t border-border/30' : ''}`}
+                                  <div
+                                    key={pedido.id}
+                                    className={`space-y-1 ${index > 0 ? "pt-2 border-t border-border/30" : ""}`}
                                   >
                                     {pedido.espelho && (
                                       <div className="text-xs md:text-sm font-semibold text-foreground truncate">
                                         • {pedido.espelho}
                                       </div>
                                     )}
-                                    
+
                                     <div className="flex flex-wrap gap-1.5 md:gap-2 ml-3">
                                       {pedido.tamanho && (
                                         <span className="text-[10px] md:text-xs text-muted-foreground">
                                           Tamanho: {pedido.tamanho}
                                         </span>
                                       )}
-                                      
+
                                       {pedido.cor && (
                                         <Badge variant="secondary" className="text-[10px] md:text-xs break-all">
                                           Cor: {pedido.cor}
@@ -269,7 +273,7 @@ const Kanban = () => {
                                             </Badge>
                                           </div>
                                         )}
-                                        
+
                                         {pedido["nota/rastreio"] && (
                                           <div className="flex items-center gap-1.5">
                                             <Hash className="w-3 h-3 md:w-3.5 md:h-3.5 text-muted-foreground shrink-0" />
